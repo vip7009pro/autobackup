@@ -1,0 +1,117 @@
+<Window x:Class="AutoBackup.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:AutoBackup.Models"
+        Title="Settings" 
+        Height="550" 
+        Width="500"
+        Background="{StaticResource BackgroundBrush}"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TabControl Grid.Row="0" Background="Transparent" BorderThickness="0">
+            <!-- Schedule Tab -->
+            <TabItem Header="Schedule">
+                <StackPanel Margin="0,16,0,0">
+                    <CheckBox Content="Enable automatic backup" 
+                              IsChecked="{Binding ScheduleEnabled}"
+                              Margin="0,0,0,16"/>
+                    
+                    <Label Content="Schedule Type"/>
+                    <ComboBox ItemsSource="{Binding ScheduleTypes}"
+                              SelectedItem="{Binding ScheduleType}"
+                              Margin="0,0,0,16"
+                              IsEnabled="{Binding ScheduleEnabled}"/>
+                    
+                    <!-- Interval Settings -->
+                    <StackPanel Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter=Interval}">
+                        <Label Content="Interval (minutes)"/>
+                        <TextBox Text="{Binding IntervalMinutes, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="100"
+                                 HorizontalAlignment="Left"
+                                 IsEnabled="{Binding ScheduleEnabled}"/>
+                    </StackPanel>
+                    
+                    <!-- Daily Settings -->
+                    <StackPanel Margin="0,16,0,0" Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter=Daily}">
+                        <Label Content="Daily Time (hour:minute)"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Text="{Binding DailyHour, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="60"
+                                     IsEnabled="{Binding ScheduleEnabled}"/>
+                            <TextBlock Text=" : " 
+                                       VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBox Text="{Binding DailyMinute, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="60"
+                                     IsEnabled="{Binding ScheduleEnabled}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+            
+            <!-- General Tab -->
+            <TabItem Header="General">
+                <StackPanel Margin="0,16,0,0">
+                    <CheckBox Content="Start with Windows" 
+                              IsChecked="{Binding StartWithWindows}"
+                              Margin="0,0,0,12"/>
+                    <CheckBox Content="Minimize to system tray on close" 
+                              IsChecked="{Binding MinimizeToTray}"
+                              Margin="0,0,0,12"/>
+                    <CheckBox Content="Show notifications" 
+                              IsChecked="{Binding ShowNotifications}"
+                              Margin="0,0,0,16"/>
+                    
+                    <CheckBox Content="Use hash comparison for file changes (more accurate, slower)" 
+                              IsChecked="{Binding UseHashComparison}"
+                              Margin="0,0,0,16"/>
+                    
+                    <Label Content="Minimum free disk space warning (GB)"/>
+                    <TextBox Text="{Binding MinFreeDiskSpaceGB, UpdateSourceTrigger=PropertyChanged}"
+                             Width="100"
+                             HorizontalAlignment="Left"/>
+                </StackPanel>
+            </TabItem>
+            
+            <!-- Exclude Patterns Tab -->
+            <TabItem Header="Exclude Patterns">
+                <StackPanel Margin="0,16,0,0">
+                    <Label Content="Global exclude patterns (applied to all backups)"/>
+                    <TextBlock Text="One pattern per line. Supports wildcards (*, ?)" 
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="11"
+                               Margin="0,0,0,8"/>
+                    <TextBox Text="{Binding GlobalExcludePatterns, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             Height="250"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="1" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right"
+                    Margin="0,24,0,0">
+            <Button Content="Cancel" 
+                    Style="{StaticResource SecondaryButton}"
+                    Click="CancelButton_Click"
+                    Margin="0,0,8,0"
+                    Width="100"/>
+            <Button Content="Save" 
+                    Style="{StaticResource PrimaryButton}"
+                    Click="SaveButton_Click"
+                    Width="100"/>
+        </StackPanel>
+    </Grid>
+</Window>

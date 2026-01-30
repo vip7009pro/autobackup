@@ -1,0 +1,13 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+G:\NODEJS\autobackup\AutoBackup\App.xaml.cs(65,9): error CS0234: The type or namespace name 'ToastNotificationManagerCompat' does not exist in the namespace 'Microsoft.Toolkit.Uwp.Notifications' (are you missing an assembly reference?) [G:\NODEJS\autobackup\AutoBackup\AutoBackup_szltrtax_wpftmp.csproj]
+G:\NODEJS\autobackup\AutoBackup\Services\NotificationService.cs(75,21): error CS1061: 'ToastContentBuilder' does not contain a definition for 'Show' and no accessible extension method 'Show' accepting a first argument of type 'ToastContentBuilder' could be found (are you missing a using directive or an assembly reference?) [G:\NODEJS\autobackup\AutoBackup\AutoBackup_szltrtax_wpftmp.csproj]
+
+Build FAILED.
+
+G:\NODEJS\autobackup\AutoBackup\App.xaml.cs(65,9): error CS0234: The type or namespace name 'ToastNotificationManagerCompat' does not exist in the namespace 'Microsoft.Toolkit.Uwp.Notifications' (are you missing an assembly reference?) [G:\NODEJS\autobackup\AutoBackup\AutoBackup_szltrtax_wpftmp.csproj]
+G:\NODEJS\autobackup\AutoBackup\Services\NotificationService.cs(75,21): error CS1061: 'ToastContentBuilder' does not contain a definition for 'Show' and no accessible extension method 'Show' accepting a first argument of type 'ToastContentBuilder' could be found (are you missing a using directive or an assembly reference?) [G:\NODEJS\autobackup\AutoBackup\AutoBackup_szltrtax_wpftmp.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.15
