@@ -271,8 +271,21 @@
                            Visibility="{Binding IsBackingUp, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}"/>
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="Cancel" 
-                            Style="{StaticResource SecondaryButton}"
+                    <StackPanel.Resources>
+                        <Style x:Key="AutoCollapseButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Resources>
+
+                    <Button Command="{Binding ResumeCommand}" Content="▶ Resume" Style="{StaticResource AutoCollapseButton}" Margin="0,0,8,0"/>
+                    <Button Command="{Binding PauseCommand}" Content="⏸ Pause" Style="{StaticResource AutoCollapseButton}" Margin="0,0,8,0"/>
+
+                    <Button Content="Stop" 
+                            Style="{StaticResource DangerButton}"
                             Command="{Binding CancelBackupCommand}"
                             Visibility="{Binding IsBackingUp, Converter={StaticResource BoolToVisibility}}"
                             Margin="0,0,8,0"/>

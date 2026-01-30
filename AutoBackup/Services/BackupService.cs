@@ -15,11 +15,14 @@ public class BackupService : IBackupService
     private readonly IFileCompareService _fileCompareService;
     private readonly ILogService _logService;
     private CancellationTokenSource? _cts;
+    private readonly ManualResetEventSlim _pauseEvent = new(true);
+    private DateTime _lastProgressUpdate = DateTime.MinValue;
 
     public event EventHandler<BackupProgressEventArgs>? ProgressChanged;
     public event EventHandler<BackupCompletedEventArgs>? BackupCompleted;
 
     public bool IsRunning { get; private set; }
+    public bool IsPaused { get; private set; }
     public BackupProgress CurrentProgress { get; private set; } = new();
 
     public BackupService(IConfigService configService, IFileCompareService fileCompareService, ILogService logService)
@@ -66,6 +69,11 @@ public class BackupService : IBackupService
                 if (_cts.Token.IsCancellationRequested)
                     break;
 
+                if (_cts.Token.IsCancellationRequested)
+                    break;
+
+                _pauseEvent.Wait(_cts.Token);
+
                 await BackupItemInternalAsync(item, _cts.Token);
                 totalCopied += item.LastBackupFileCount;
                 totalFailed += item.LastBackupStatus == BackupStatus.Failed ? 1 : 0;
@@ -98,9 +106,11 @@ public class BackupService : IBackupService
         finally
         {
             IsRunning = false;
+            IsPaused = false;
+            _pauseEvent.Set();
             CurrentProgress.IsRunning = false;
             CurrentProgress.StatusMessage = "Ready";
-            RaiseProgressChanged();
+            RaiseProgressChanged(true);
             await _configService.SaveAsync();
         }
     }
@@ -152,9 +162,11 @@ public class BackupService : IBackupService
         finally
         {
             IsRunning = false;
+            IsPaused = false;
+            _pauseEvent.Set();
             CurrentProgress.IsRunning = false;
             CurrentProgress.StatusMessage = "Ready";
-            RaiseProgressChanged();
+            RaiseProgressChanged(true);
             await _configService.SaveAsync();
         }
     }
@@ -193,6 +205,8 @@ public class BackupService : IBackupService
         {
             if (ct.IsCancellationRequested)
                 break;
+
+            _pauseEvent.Wait(ct);
 
             try
             {
@@ -332,10 +346,42 @@ public class BackupService : IBackupService
     public void Cancel()
     {
         _cts?.Cancel();
+        if (IsPaused) Resume(); // Ensure we can cancel if paused
     }
 
-    private void RaiseProgressChanged()
+    public void Pause()
     {
-        ProgressChanged?.Invoke(this, new BackupProgressEventArgs(CurrentProgress));
+        if (IsRunning && !IsPaused)
+        {
+            IsPaused = true;
+            _pauseEvent.Reset();
+            _logService.Info("Backup paused");
+            CurrentProgress.IsPaused = true;
+            CurrentProgress.StatusMessage = "Paused";
+            RaiseProgressChanged(true);
+        }
+    }
+
+    public void Resume()
+    {
+        if (IsRunning && IsPaused)
+        {
+            IsPaused = false;
+            _pauseEvent.Set();
+            _logService.Info("Backup resumed");
+            CurrentProgress.IsPaused = false;
+            CurrentProgress.StatusMessage = "Resuming...";
+            RaiseProgressChanged(true);
+        }
+    }
+
+    private void RaiseProgressChanged(bool force = false)
+    {
+        var now = DateTime.Now;
+        if (force || (now - _lastProgressUpdate).TotalMilliseconds >= 100)
+        {
+            _lastProgressUpdate = now;
+            ProgressChanged?.Invoke(this, new BackupProgressEventArgs(CurrentProgress));
+        }
     }
 }

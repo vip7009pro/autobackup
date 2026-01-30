@@ -44,6 +44,8 @@ public class MainViewModel : ViewModelBase
         {
             ((AsyncRelayCommand)BackupAllCommand).RaiseCanExecuteChanged();
             ((AsyncRelayCommand)BackupSelectedCommand).RaiseCanExecuteChanged();
+            PauseCommand.RaiseCanExecuteChanged();
+            ResumeCommand.RaiseCanExecuteChanged();
         });
     }
 
@@ -83,6 +85,20 @@ public class MainViewModel : ViewModelBase
         set => SetProperty(ref _globalStatus, value);
     }
 
+    private bool _isPaused;
+
+    public bool IsPaused
+    {
+        get => _isPaused;
+        set => SetProperty(ref _isPaused, value, () =>
+        {
+            ((AsyncRelayCommand)BackupAllCommand).RaiseCanExecuteChanged();
+            ((AsyncRelayCommand)BackupSelectedCommand).RaiseCanExecuteChanged();
+            PauseCommand.RaiseCanExecuteChanged();
+            ResumeCommand.RaiseCanExecuteChanged();
+        });
+    }
+
     // Commands
     public AsyncRelayCommand BackupAllCommand { get; }
     public AsyncRelayCommand BackupSelectedCommand { get; }
@@ -90,6 +106,8 @@ public class MainViewModel : ViewModelBase
     public RelayCommand EditItemCommand { get; }
     public RelayCommand DeleteItemCommand { get; }
     public RelayCommand CancelBackupCommand { get; }
+    public RelayCommand PauseCommand { get; }
+    public RelayCommand ResumeCommand { get; }
     public RelayCommand ShowWindowCommand { get; }
     public RelayCommand ExitCommand { get; }
 
@@ -120,6 +138,8 @@ public class MainViewModel : ViewModelBase
         EditItemCommand = new RelayCommand(EditItem, _ => SelectedItem != null);
         DeleteItemCommand = new RelayCommand(DeleteItem, _ => SelectedItem != null);
         CancelBackupCommand = new RelayCommand(CancelBackup, _ => IsBackingUp);
+        PauseCommand = new RelayCommand(PauseBackup, _ => IsBackingUp && !IsPaused);
+        ResumeCommand = new RelayCommand(ResumeBackup, _ => IsBackingUp && IsPaused);
         ShowWindowCommand = new RelayCommand(_ => ShowWindowRequested?.Invoke(this, EventArgs.Empty));
         ExitCommand = new RelayCommand(_ => ExitRequested?.Invoke(this, EventArgs.Empty));
 
@@ -238,6 +258,16 @@ public class MainViewModel : ViewModelBase
         StatusMessage = "Cancelling...";
     }
 
+    private void PauseBackup(object? parameter)
+    {
+        _backupService.Pause();
+    }
+
+    private void ResumeBackup(object? parameter)
+    {
+        _backupService.Resume();
+    }
+
     private void OnProgressChanged(object? sender, BackupProgressEventArgs e)
     {
         _dispatcher.Invoke(() =>
@@ -246,7 +276,12 @@ public class MainViewModel : ViewModelBase
             StatusMessage = e.Progress.StatusMessage;
             CurrentFile = e.Progress.CurrentFile;
             IsBackingUp = e.Progress.IsRunning;
-            GlobalStatus = e.Progress.IsRunning ? "Backing up..." : "Idle";
+            IsPaused = e.Progress.IsPaused;
+            
+            if (e.Progress.IsPaused)
+                GlobalStatus = "Paused";
+            else
+                GlobalStatus = e.Progress.IsRunning ? "Backing up..." : "Idle";
 
             // Update item status
             var itemVm = BackupItems.FirstOrDefault(x => x.Name == e.Progress.CurrentItemName);
@@ -262,6 +297,7 @@ public class MainViewModel : ViewModelBase
         _dispatcher.Invoke(() =>
         {
             IsBackingUp = false;
+            IsPaused = false;
             ProgressPercentage = 0;
             CurrentFile = "";
             StatusMessage = e.Success ? "Backup completed" : $"Backup failed: {e.ErrorMessage}";

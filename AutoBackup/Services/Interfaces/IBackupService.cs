@@ -73,4 +73,19 @@ public interface IBackupService
     /// Cancel the current backup operation
     /// </summary>
     void Cancel();
+
+    /// <summary>
+    /// Pause the current backup
+    /// </summary>
+    void Pause();
+
+    /// <summary>
+    /// Resume the paused backup
+    /// </summary>
+    void Resume();
+
+    /// <summary>
+    /// Whether the backup is currently paused
+    /// </summary>
+    bool IsPaused { get; }
 }

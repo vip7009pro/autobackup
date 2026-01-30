@@ -56,6 +56,11 @@ public class BackupProgress
     public bool IsRunning { get; set; }
 
     /// <summary>
+    /// Whether the backup is currently paused
+    /// </summary>
+    public bool IsPaused { get; set; }
+
+    /// <summary>
     /// Status message
     /// </summary>
     public string StatusMessage { get; set; } = "Ready";
